@@ -29,7 +29,7 @@ void enable_cursor(void){
 
 // hide cursor
 void disable_cursor(void){
-	setvbuf(stdout, NULL, _IONBF, 0);  // Disable buffering for stdout
+	// setvbuf(stdout, NULL, _IONBF, 0);  // Disable buffering for stdout
 	printf("\033[?25l");
 	fflush(NULL);
 }
@@ -88,8 +88,8 @@ void cls_term(void){
 }
 
 
-// static int tmp_y_siz = 0;
-// static int tmp_x_siz = 0;
+static int tmp_y_siz = 0;
+static int tmp_x_siz = 0;
 
 /* ter_size: get terminal size [x, y] */
 TERSIZ term_size(void){
@@ -107,20 +107,20 @@ TERSIZ term_size(void){
 	siz.y = csbi.srWindow.Bottom - csbi.srWindow.Top + 1;
 #endif
 
-	// // Clear terminal if user changes the window
-	// if(siz.x != tmp_x_siz || siz.y != tmp_y_siz){ system("clear"); }
-	// tmp_y_siz = siz.y;
-	// tmp_x_siz = siz.x;
+	// Clear terminal if user changes the window
+	if(siz.x != tmp_x_siz || siz.y != tmp_y_siz){ plat_cls(); }
+	tmp_y_siz = siz.y;
+	tmp_x_siz = siz.x;
 
 	return siz;
 }
 
 /* turn the echo on and make cursor visible */
 void normal_terminal(void){
-	// system("clear");
 	plat_cls();
 	enable_cursor();
 	nrm_term();
+	setvbuf(stdout, NULL, _IONBF, 0);  // Disable buffering for stdout
 	fflush(NULL);
 }
 

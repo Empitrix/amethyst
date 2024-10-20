@@ -19,6 +19,7 @@
 #elif _WIN32
 #include <conio.h>
 #include <windows.h>
+#include <signal.h>
 #endif
 
 /* Decimal TO Binary: convert given decimal to binary (char *) */
@@ -199,6 +200,8 @@ void end_sig_func(){
 	sigaction(SIGINT, &old_action, NULL);
 	kill(0, SIGINT);
 #elif _WIN32
+	plat_cls();
+	exit(0);
 #endif
 }
 
@@ -211,12 +214,11 @@ void init_end_sig(){
 	sigaction(SIGINT, &action, &old_action);
 	system("clear");  // clear screen when start the program
 #elif _WIN32
-
+	signal(SIGINT, end_sig_func);
 // save as utf-8
 #pragma execution_character_set_push("utf-8")
 	SetConsoleOutputCP(65001);
-
-	system("cls");  // clear screen when start the program
+	plat_cls();
 #endif
 }
 
