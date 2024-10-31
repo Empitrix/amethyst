@@ -4,6 +4,19 @@
 #include "rom.h"
 
 
+
+int set_z_bit(int value){
+	if(value == 0){
+		// The result of an arithmetic or logic operation is zero
+		set_sfr_bit(STATUS_REGISTER, 2);  // set Z
+		return 1;
+	} else {
+		// The result of an arithmetic or logic operation is not zero
+		clear_sfr_bit(STATUS_REGISTER, 2);  // clear Z
+	}
+	return 0;
+}
+
 /* return EXEC that contains execute information for given instruction */
 /* Soft in soft_execute means it's not memory (register, ram ...) related */
 EXEC soft_execute(DECODE dcd){
@@ -18,6 +31,8 @@ EXEC soft_execute(DECODE dcd){
 			break;
 
 		case SLEEP_OP:
+			clear_sfr_bit(STATUS_REGISTER, 3);
+			set_sfr_bit(STATUS_REGISTER, 4);
 			exec.sleep = 1;
 			break;
 
@@ -160,6 +175,8 @@ int execute(DECODE dcd){
 		clear_sfr_bit(STATUS_REGISTER, 0);
 	}
 
+	int tmp = 0;
+
 	switch(dcd.opcode) {
 		// BSF
 		case BSF_OP:
@@ -188,23 +205,21 @@ int execute(DECODE dcd){
 		case CLRF_OP:
 			m = get_mem(dcd.addr);
 			set_mem(m, 0);
+			set_z_bit(0);
 			break;
 		
 		// CLRW
 		case CLRW_OP:
 			set_w_reg(0);
+			set_z_bit(0);
 			break;
 
 		// DECF
 		case DECF_OP:
 			m = get_mem(dcd.addr);
-			if(m.value != 0){
-				m.value--;
-				clear_sfr_bit(STATUS_REGISTER, 2);
-			} else {
-				set_sfr_bit(STATUS_REGISTER, 2);
-			}
+			if(m.value != 0){ m.value--; }
 			update_by_dist(m, dcd);
+			set_z_bit(m.value);
 			break;
 
 		// DECFSZ
@@ -225,12 +240,11 @@ int execute(DECODE dcd){
 			m = get_mem(dcd.addr);
 			if(m.value != 255){
 				m.value++;
-				clear_sfr_bit(STATUS_REGISTER, 2);
 			} else {
 				m.value = 0;
-				set_sfr_bit(STATUS_REGISTER, 2);
 			}
 			update_by_dist(m, dcd);
+			set_z_bit(m.value);
 			break;
 
 		// INCFSZ
@@ -267,15 +281,24 @@ int execute(DECODE dcd){
 		// ADDWF
 		case ADDWF_OP:
 			m = get_mem(dcd.addr);
+			tmp = m.value;
 			m.value = m.value + get_w_reg();
+
 			if(m.value > 255){
-				m.value = 0;
+				clear_sfr_bit(STATUS_REGISTER, 0);
+			} else {
+				set_sfr_bit(STATUS_REGISTER, 0);
+			}
+
+			if((edfb(get_w_reg(), 0, 3) + edfb(tmp, 0, 3)) > 0x0F){
 				clear_sfr_bit(STATUS_REGISTER, 1);
-				set_sfr_bit(STATUS_REGISTER, 2);
 			} else {
 				set_sfr_bit(STATUS_REGISTER, 1);
-				clear_sfr_bit(STATUS_REGISTER, 2);
 			}
+
+
+			if(m.value > 255){ m.value = 0; }
+			set_z_bit(m.value);
 			update_by_dist(m, dcd);
 			break;
 
@@ -284,6 +307,7 @@ int execute(DECODE dcd){
 			m = get_mem(dcd.addr);
 			m.value &= get_w_reg();
 			update_by_dist(m, dcd);
+			set_z_bit(m.value);
 			break;
 
 		// COMF
@@ -291,6 +315,7 @@ int execute(DECODE dcd){
 			m = get_mem(dcd.addr);
 			m.value = ~m.value;
 			update_by_dist(m, dcd);
+			set_z_bit(m.value);
 			break;
 
 		// IORWF
@@ -298,12 +323,14 @@ int execute(DECODE dcd){
 			m = get_mem(dcd.addr);
 			m.value |= get_w_reg();
 			update_by_dist(m, dcd);
+			set_z_bit(m.value);
 			break;
 
 		// MOVF
 		case MOVF_OP:
 			m = get_mem(dcd.addr);
 			update_by_dist(m, dcd);
+			set_z_bit(m.value);
 			break;
 
 		// RLF
@@ -323,15 +350,36 @@ int execute(DECODE dcd){
 		// SUBWF (W - f)
 		case SUBWF_OP:
 			m = get_mem(dcd.addr);
+			// int tmpval = edfb(m.value, 9, 12);
+			int tmpval = m.value;
 			m.value = get_w_reg() - m.value;
+
 			if(m.value < 0){
-				m.value = 0;
-				clear_sfr_bit(STATUS_REGISTER, 1);
-				set_sfr_bit(STATUS_REGISTER, 2);
+				// A borrow did occurred
+				clear_sfr_bit(STATUS_REGISTER, 0);
 			} else {
-				set_sfr_bit(STATUS_REGISTER, 1);
-				clear_sfr_bit(STATUS_REGISTER, 2);
+				// A borrow did not occurred
+				set_sfr_bit(STATUS_REGISTER, 0);
 			}
+
+			if((edfb(get_w_reg(), 0, 3) - edfb(tmpval, 0, 3)) < 0){
+				// A borrow from the 4th low-order bit of the result did not occur
+				clear_sfr_bit(STATUS_REGISTER, 1);
+			} else {
+				// A borrow from the 4th low-order bit of the result occur
+				set_sfr_bit(STATUS_REGISTER, 1);
+			}
+
+			// if(m.value <= 0){
+			// 	// The result of an arithmetic or logic operation is zero
+			// 	m.value = 0;
+			// 	set_sfr_bit(STATUS_REGISTER, 2);  // set Z
+			// } else {
+			// 	// The result of an arithmetic or logic operation is not zero
+			// 	clear_sfr_bit(STATUS_REGISTER, 2);  // clear Z
+			// }
+
+			if(set_z_bit(tmp)){ m.value = 0; }
 
 			update_by_dist(m, dcd);
 			break;
@@ -347,12 +395,15 @@ int execute(DECODE dcd){
 		case XORWF_OP:
 			m = get_mem(dcd.addr);
 			m.value = m.value ^ get_w_reg();
+			set_z_bit(m.value);
 			update_by_dist(m, dcd);
 			break;
 
-		// XORWF
+		// ANDLW
 		case ANDLW_OP:
-			set_w_reg(get_w_reg() & dcd.bits);
+			tmp = get_w_reg() & dcd.bits;
+			set_z_bit(tmp);
+			set_w_reg(tmp);
 			break;
 
 		// CLRWDT
@@ -364,7 +415,9 @@ int execute(DECODE dcd){
 
 		// IORLW
 		case IORLW_OP:
-			set_w_reg(get_w_reg() | dcd.bits);
+			tmp = get_w_reg() | dcd.bits;
+			set_z_bit(tmp);
+			set_w_reg(tmp);
 			break;
 
 		// OPTION
@@ -384,7 +437,9 @@ int execute(DECODE dcd){
 
 		// XORLW
 		case XORLW_OP:
-			set_w_reg(get_w_reg() ^ dcd.bits);
+			tmp = get_w_reg() ^ dcd.bits;
+			set_w_reg(tmp);
+			set_z_bit(tmp);
 			break;
 
 		default:
