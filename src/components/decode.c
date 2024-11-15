@@ -111,7 +111,7 @@ DECODE decode_inst(int inst){
 		dcd.bits = edfb(inst, 6, 6);
 
 	// BTFSS
-	} else if(edfb(inst, 9, 12) == 0x06){  // 0b0110
+	} else if(edfb(inst, 9, 12) == 0x07){  // 0b0111
 		dcd.opcode = BTFSS_OP;
 		dcd.operand = edfb(inst, 1, 8);
 		dcd.type = FOUR_THREE_FIVE;
@@ -120,7 +120,7 @@ DECODE decode_inst(int inst){
 		dcd.bits = edfb(inst, 6, 8);
 
 	// BTFSC
-	} else if(edfb(inst, 9, 12) == 0x07){  // 0b0111
+	} else if(edfb(inst, 9, 12) == 0x06){  // 0b0110
 		dcd.opcode = BTFSC_OP;
 		dcd.operand = edfb(inst, 1, 8);
 		dcd.type = FOUR_THREE_FIVE;

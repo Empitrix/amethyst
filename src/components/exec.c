@@ -2,6 +2,7 @@
 #include "./decode.h"
 #include "./mem.h"
 #include "rom.h"
+#include <stdio.h>
 
 
 
@@ -168,12 +169,12 @@ int execute(DECODE dcd){
 	set_sfr(INDF_REGISTER, fsr);
 	set_sfr(TMR0_REGISTER, get_cpu_coutner());
 
-	// Update Carry bit in STATUS
-	if(get_carry()){
-		set_sfr_bit(STATUS_REGISTER, 0);
-	} else {
-		clear_sfr_bit(STATUS_REGISTER, 0);
-	}
+	// // Update Carry bit in STATUS
+	// if(get_carry()){
+	// 	set_sfr_bit(STATUS_REGISTER, 0);
+	// } else {
+	// 	clear_sfr_bit(STATUS_REGISTER, 0);
+	// }
 
 	int tmp = 0;
 
