@@ -168,7 +168,7 @@ void emulate_cpu(GFLAGS *flags, int ukey){
 
 	// RAM
 	for(int i = 0; i < (ram_ps >= 16 ? 16 : ram_ps); ++i){
-		dtoh(i + 16, 2, addr_buff);
+		dtoh(i + REGSIZ, 2, addr_buff);
 		dtoh(RAM[i], 2, ram_buff);
 		dtob(RAM[i], 8, bin_buff),
 

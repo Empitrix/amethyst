@@ -45,11 +45,7 @@ void dtob(int decimal_num, int len, char binary_str[]) {
 
 
 /* dtoh: (Decimal TO Hex) converts given decimal into hex string with size of 'siz' */
-char *dtoh(int decimal, int size, char hex[]){
-	if (hex == NULL) {
-		return NULL;
-	}
-
+void dtoh(int decimal, int size, char hex[]){
 	hex[0] = '0';
 	hex[1] = 'x';
 	hex[size + 2] = '\0'; // Add null terminator
@@ -68,7 +64,6 @@ char *dtoh(int decimal, int size, char hex[]){
 			decimal /= 16;
 		}
 	}
-	return hex;
 }
 
 

@@ -19,12 +19,14 @@ MEM_OUT get_mem(int addr){
 	MEM_OUT mem;
 	mem.valid = 1;
 
+	// if(addr <= (REGSIZ - 1)){
 	if(addr <= (REGSIZ - 1)){
 		mem.type = TO_REG;
 		mem.addr = addr;
 		mem.value = REGISTERS[mem.addr];
 		
-	} else if (addr >= REGSIZ && addr <= (RAMSIZ - 1)){
+	// } else if (addr >= REGSIZ && addr <= (RAMSIZ - 1)){
+	} else if (addr <= (RAMSIZ + REGSIZ - 1) && addr > REGSIZ - 1){
 		mem.type = TO_RAM;
 		mem.addr = addr - REGSIZ;
 		mem.value = RAM[mem.addr];

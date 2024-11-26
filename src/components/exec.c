@@ -351,9 +351,8 @@ int execute(DECODE dcd){
 		// SUBWF (W - f)
 		case SUBWF_OP:
 			m = get_mem(dcd.addr);
-			// int tmpval = edfb(m.value, 9, 12);
 			int tmpval = m.value;
-			m.value = get_w_reg() - m.value;
+			m.value = m.value - get_w_reg();
 
 			if(m.value < 0){
 				// A borrow did occurred
