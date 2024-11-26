@@ -357,6 +357,7 @@ int execute(DECODE dcd){
 			if(m.value < 0){
 				// A borrow did occurred
 				clear_sfr_bit(STATUS_REGISTER, 0);
+				m.value = 0;
 			} else {
 				// A borrow did not occurred
 				set_sfr_bit(STATUS_REGISTER, 0);
@@ -379,8 +380,8 @@ int execute(DECODE dcd){
 			// 	clear_sfr_bit(STATUS_REGISTER, 2);  // clear Z
 			// }
 
-			if(set_z_bit(tmp)){ m.value = 0; }
-
+			// if(set_z_bit(m.value)){ m.value = 0; }
+			set_z_bit(m.value);
 			update_by_dist(m, dcd);
 			break;
 
