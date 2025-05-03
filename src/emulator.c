@@ -11,15 +11,17 @@
 #include <string.h>
 
 
+#define MAX_TERM_SIZE 1024
+
 static int cw = 0;
 static int ch = 0;
 static int cflush = 0;
-static char cbuff[50][MALL];
+static char cbuff[MAX_TERM_SIZE][MALL];
 
 
 /* Make size for console */
 void make_size(int l_len){
-	char tbuff[50][MALL];
+	char tbuff[MAX_TERM_SIZE][MALL];
 	for(int i = 1; i < l_len; ++i){
 		 strcpy(tbuff[i - 1], cbuff[i]);
 	}
