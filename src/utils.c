@@ -3,7 +3,6 @@
 #include <string.h>
 #include <stdarg.h>
 #include <fcntl.h>
-#include <wchar.h>
 #include "components/mem.h"
 #include "rules.h"
 #include "types.h"
@@ -189,7 +188,7 @@ struct sigaction old_action;
 #endif
 
 // Action for end of the program signal <C-c>
-void end_sig_func(){
+void end_sig_func(int _){
 	normal_terminal();
 #ifdef linux
 	sigaction(SIGINT, &old_action, NULL);
